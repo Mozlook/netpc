@@ -14,7 +14,7 @@ public class Contact
     public Category Category { get; set; } = null!;
 
     public int? SubcategoryId { get; set; }
-    public SubCategory? SubCategory { get; set; }
+    public Subcategory? Subcategory { get; set; }
 
     public string? CustomSubcategory { get; set; }
 
