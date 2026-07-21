@@ -18,5 +18,12 @@ public class AppDbContext : DbContext
         modelBuilder.Entity<User>().HasIndex(u => u.Email).IsUnique();
 
         modelBuilder.Entity<Contact>().HasIndex(c => c.Email).IsUnique();
+
+        modelBuilder
+            .Entity<Contact>()
+            .HasOne(c => c.Category)
+            .WithMany(cat => cat.Contacts)
+            .HasForeignKey(c => c.CategoryId)
+            .OnDelete(DeleteBehavior.Restrict);
     }
 }
