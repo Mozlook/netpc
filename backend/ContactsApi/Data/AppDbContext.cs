@@ -20,6 +20,36 @@ public class AppDbContext : DbContext
         modelBuilder.Entity<Contact>().HasIndex(c => c.Email).IsUnique();
 
         modelBuilder
+            .Entity<Category>()
+            .HasData(
+                new Category { Id = 1, Name = "służbowy" },
+                new Category { Id = 2, Name = "prywatny" },
+                new Category { Id = 3, Name = "inny" }
+            );
+
+        modelBuilder
+            .Entity<Subcategory>()
+            .HasData(
+                new Subcategory
+                {
+                    CategoryId = 1,
+                    Id = 1,
+                    Name = "szef",
+                },
+                new Subcategory
+                {
+                    CategoryId = 1,
+                    Id = 2,
+                    Name = "klient",
+                },
+                new Subcategory
+                {
+                    CategoryId = 1,
+                    Id = 3,
+                    Name = "współpracownik",
+                }
+            );
+        modelBuilder
             .Entity<Contact>()
             .HasOne(c => c.Category)
             .WithMany(cat => cat.Contacts)
