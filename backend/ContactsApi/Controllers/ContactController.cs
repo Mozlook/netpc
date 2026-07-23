@@ -1,7 +1,11 @@
 namespace ContactsApi.Controllers;
 
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
 using ContactsApi.Data;
 using ContactsApi.DTOs;
+using ContactsApi.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -56,5 +60,95 @@ public class ContactController : ControllerBase
             return NotFound();
         }
         return Ok(contact);
+    }
+
+    [HttpPost]
+    [Authorize]
+    public async Task<ActionResult<ContactDetailsResponse>> Create(ContactCreateRequest request)
+    {
+        var category = await _context.Categories.FirstOrDefaultAsync(c =>
+            c.Id == request.CategoryId
+        );
+        if (category is null)
+        {
+            return BadRequest("Podana kategoria nie istnieje.");
+        }
+
+        Subcategory? subcategory = null;
+        if (request.SubcategoryId is not null)
+        {
+            subcategory = await _context.Subcategories.FirstOrDefaultAsync(s =>
+                s.Id == request.SubcategoryId
+            );
+            if (subcategory is null)
+            {
+                return BadRequest("Podana podkategoria nie istnieje.");
+            }
+        }
+
+        if (category.Id == 1)
+        {
+            if (request.SubcategoryId is null || request.CustomSubcategory is not null)
+            {
+                return BadRequest("Kategoria 'służbowy' wymaga podania podkategorii ze słownika.");
+            }
+        }
+        else if (category.Id == 3)
+        {
+            if (request.CustomSubcategory is null || request.SubcategoryId is not null)
+            {
+                return BadRequest("Kategoria 'inny' wymaga podania własnej podkategorii.");
+            }
+        }
+        else
+        {
+            if (request.SubcategoryId is not null || request.CustomSubcategory is not null)
+            {
+                return BadRequest("Kategoria 'prywatny' nie powinna mieć podkategorii.");
+            }
+        }
+
+        var existingContact = await _context.Contacts.FirstOrDefaultAsync(c =>
+            c.Email == request.Email
+        );
+        if (existingContact is not null)
+        {
+            return Conflict();
+        }
+
+        var passwordHash = BCrypt.Net.BCrypt.HashPassword(request.Password);
+        var userId = int.Parse(User.FindFirstValue(JwtRegisteredClaimNames.Sub)!);
+
+        var newContact = new Contact
+        {
+            FirstName = request.FirstName,
+            LastName = request.LastName,
+            Email = request.Email,
+            PasswordHash = passwordHash,
+            Phone = request.Phone,
+            DateOfBirth = request.DateOfBirth,
+            CategoryId = request.CategoryId,
+            SubcategoryId = request.SubcategoryId,
+            CustomSubcategory = request.CustomSubcategory,
+            OwnerId = userId,
+        };
+
+        _context.Contacts.Add(newContact);
+        await _context.SaveChangesAsync();
+
+        var response = new ContactDetailsResponse(
+            newContact.Id,
+            newContact.FirstName,
+            newContact.LastName,
+            newContact.Email,
+            category.Name,
+            subcategory?.Name,
+            newContact.CustomSubcategory,
+            newContact.Phone,
+            newContact.DateOfBirth,
+            newContact.OwnerId
+        );
+
+        return Ok(response);
     }
 }
