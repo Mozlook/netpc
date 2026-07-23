@@ -57,7 +57,7 @@ public class ContactController : ControllerBase
 
         if (contact is null)
         {
-            return NotFound();
+            return NotFound("Kontakt o podanym Id nie istnieje.");
         }
         return Ok(contact);
     }
@@ -113,7 +113,7 @@ public class ContactController : ControllerBase
         );
         if (existingContact is not null)
         {
-            return Conflict();
+            return Conflict("Kontakt z tym adresem email już istnieje.");
         }
 
         var passwordHash = BCrypt.Net.BCrypt.HashPassword(request.Password);
@@ -160,7 +160,7 @@ public class ContactController : ControllerBase
 
         if (contact is null)
         {
-            return NotFound();
+            return NotFound("Kontakt o podanym Id nie istnieje.");
         }
 
         var userId = int.Parse(User.FindFirstValue(JwtRegisteredClaimNames.Sub)!);
@@ -188,7 +188,7 @@ public class ContactController : ControllerBase
 
         if (contact is null)
         {
-            return NotFound();
+            return NotFound("Kontakt o podanym Id nie istnieje.");
         }
 
         var userId = int.Parse(User.FindFirstValue(JwtRegisteredClaimNames.Sub)!);
@@ -204,7 +204,7 @@ public class ContactController : ControllerBase
 
         if (category is null)
         {
-            return BadRequest();
+            return BadRequest("Podana kategoria nie istnieje.");
         }
 
         Subcategory? subcategory = null;
@@ -215,7 +215,7 @@ public class ContactController : ControllerBase
             );
             if (subcategory is null)
             {
-                return BadRequest();
+                return BadRequest("Podana podkategoria nie istnieje.");
             }
         }
 
@@ -247,7 +247,7 @@ public class ContactController : ControllerBase
 
         if (emailConflict is not null)
         {
-            return Conflict();
+            return Conflict("Kontakt z tym adresem email już istnieje.");
         }
 
         contact.FirstName = request.FirstName;
