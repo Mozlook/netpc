@@ -1,5 +1,11 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { createContact, getContact, getContacts } from "../api/contacts";
+import {
+  createContact,
+  getContact,
+  getContacts,
+  updateContact,
+} from "../api/contacts";
+import type { ContactUpdateRequest } from "../types/contact";
 
 export const contactKeys = {
   all: ["contacts"] as const,
@@ -27,6 +33,18 @@ export function useCreateContact() {
     mutationFn: createContact,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: contactKeys.all });
+    },
+  });
+}
+
+export function useUpdateContact() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, body }: { id: string; body: ContactUpdateRequest }) =>
+      updateContact(id, body),
+    onSuccess: (_data, { id }) => {
+      queryClient.invalidateQueries({ queryKey: contactKeys.all });
+      queryClient.invalidateQueries({ queryKey: contactKeys.detail(id) });
     },
   });
 }

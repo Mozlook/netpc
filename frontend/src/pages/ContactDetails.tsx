@@ -1,5 +1,6 @@
 import { Link, useParams } from "react-router-dom";
 import { useContact } from "../hooks/useContacts";
+import { useAuth } from "../context/AuthContext";
 import { ApiError } from "../api/client";
 
 function formatDate(iso: string): string {
@@ -8,6 +9,7 @@ function formatDate(iso: string): string {
 
 function ContactDetails() {
   const { id } = useParams();
+  const { user } = useAuth();
   const { data: contact, isLoading, isError, error } = useContact(id);
 
   if (isLoading) {
@@ -32,15 +34,27 @@ function ContactDetails() {
     return null;
   }
 
+  const isOwner = user?.id === contact.ownerId;
+
   return (
     <div>
       <Link to="/" className="text-sm text-blue-600 underline">
         ← Wróć do listy
       </Link>
 
-      <h2 className="mb-4 mt-2 text-lg font-semibold">
-        {contact.firstName} {contact.lastName}
-      </h2>
+      <div className="mb-4 mt-2 flex items-center justify-between gap-4">
+        <h2 className="text-lg font-semibold">
+          {contact.firstName} {contact.lastName}
+        </h2>
+        {isOwner && (
+          <Link
+            to={`/contacts/${contact.id}/edit`}
+            className="rounded border border-gray-300 px-3 py-1 text-sm hover:bg-gray-50"
+          >
+            Edytuj
+          </Link>
+        )}
+      </div>
 
       <dl className="grid grid-cols-[max-content_1fr] gap-x-6 gap-y-2 text-sm">
         <dt className="text-gray-500">Email</dt>
