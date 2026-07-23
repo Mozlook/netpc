@@ -1,5 +1,5 @@
-import { useQuery } from "@tanstack/react-query";
-import { getContact, getContacts } from "../api/contacts";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { createContact, getContact, getContacts } from "../api/contacts";
 
 export const contactKeys = {
   all: ["contacts"] as const,
@@ -18,5 +18,15 @@ export function useContact(id: string | undefined) {
     queryKey: contactKeys.detail(id ?? ""),
     queryFn: () => getContact(id!),
     enabled: id !== undefined,
+  });
+}
+
+export function useCreateContact() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: createContact,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: contactKeys.all });
+    },
   });
 }

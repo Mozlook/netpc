@@ -3,10 +3,7 @@ import type { SyntheticEvent } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { ApiError } from "../api/client";
-
-const PASSWORD_REGEX = /^(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9]).{8,}$/;
-const PASSWORD_HINT =
-  "Min. 8 znaków, w tym wielka litera, cyfra i znak specjalny.";
+import { PASSWORD_HINT, PASSWORD_REGEX } from "../lib/password";
 
 function RegisterPage() {
   const { register } = useAuth();
