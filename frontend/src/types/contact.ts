@@ -1,3 +1,4 @@
+// Mirrors backend contact DTOs. JSON is camelCase; DateTime arrives as an ISO string.
 export interface ContactListItemResponse {
   id: number;
   firstName: string;
@@ -6,6 +7,7 @@ export interface ContactListItemResponse {
   category: string;
 }
 
+// Responses expose category/subcategory as names; the request DTOs below take ids.
 export interface ContactDetailsResponse {
   id: number;
   firstName: string;
@@ -35,6 +37,7 @@ export interface ContactUpdateRequest {
   firstName: string;
   lastName: string;
   email: string;
+  // Optional: omit / null keeps the current password.
   password?: string | null;
   phone: string;
   dateOfBirth: string;

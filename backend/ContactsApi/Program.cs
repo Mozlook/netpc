@@ -20,6 +20,8 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 
 builder.Services.AddScoped<ITokenService, TokenService>();
 
+// Credentials are required so the browser sends the JWT cookie cross-origin;
+// a credentialed policy cannot use AllowAnyOrigin, hence the explicit origin.
 builder.Services.AddCors(options =>
 {
     options.AddPolicy(
@@ -39,6 +41,8 @@ builder
     .Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
     {
+        // Keep "sub" unmapped; otherwise it becomes a long URI claim and
+        // User.FindFirstValue(JwtRegisteredClaimNames.Sub) returns null.
         options.MapInboundClaims = false;
 
         options.TokenValidationParameters = new TokenValidationParameters
@@ -54,6 +58,7 @@ builder
             ),
         };
 
+        // Read the token from the HttpOnly cookie instead of the Authorization header.
         options.Events = new JwtBearerEvents
         {
             OnMessageReceived = context =>

@@ -20,6 +20,7 @@ public class ContactController : ControllerBase
         _context = context;
     }
 
+    // Public endpoints: listing and details are available without authentication.
     [HttpGet]
     public async Task<ActionResult<IEnumerable<ContactListItemResponse>>> GetAll()
     {
@@ -86,6 +87,8 @@ public class ContactController : ControllerBase
             }
         }
 
+        // Subcategory rules by category: służbowy (1) needs a dictionary subcategory,
+        // inny (3) needs custom text, prywatny (2) needs neither.
         if (category.Id == 1)
         {
             if (request.SubcategoryId is null || request.CustomSubcategory is not null)
@@ -165,6 +168,7 @@ public class ContactController : ControllerBase
 
         var userId = int.Parse(User.FindFirstValue(JwtRegisteredClaimNames.Sub)!);
 
+        // Ownership check (IDOR): only the owner may modify or delete a contact.
         if (contact.OwnerId != userId)
         {
             return Forbid();
@@ -193,6 +197,7 @@ public class ContactController : ControllerBase
 
         var userId = int.Parse(User.FindFirstValue(JwtRegisteredClaimNames.Sub)!);
 
+        // Ownership check (IDOR): only the owner may modify or delete a contact.
         if (contact.OwnerId != userId)
         {
             return Forbid();
@@ -219,6 +224,8 @@ public class ContactController : ControllerBase
             }
         }
 
+        // Subcategory rules by category: służbowy (1) needs a dictionary subcategory,
+        // inny (3) needs custom text, prywatny (2) needs neither.
         if (category.Id == 1)
         {
             if (request.SubcategoryId is null || request.CustomSubcategory is not null)

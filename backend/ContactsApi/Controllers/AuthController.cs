@@ -51,6 +51,7 @@ public class AuthController : ControllerBase
     {
         var existingUser = await _context.Users.FirstOrDefaultAsync(u => u.Email == request.Email);
 
+        // Same message for unknown email and wrong password to avoid user enumeration.
         if (existingUser is null)
         {
             return Unauthorized("Nieprawidłowy email lub hasło.");
@@ -63,6 +64,7 @@ public class AuthController : ControllerBase
 
         var token = _tokenService.GenerateToken(existingUser);
 
+        // HttpOnly keeps the token out of JS; Secure/SameSite limit its exposure.
         var cookieOptions = new CookieOptions
         {
             HttpOnly = true,
@@ -79,6 +81,7 @@ public class AuthController : ControllerBase
     [Authorize]
     public ActionResult Logout()
     {
+        // Deletion must use the same attributes the cookie was set with.
         var cookieOptions = new CookieOptions
         {
             HttpOnly = true,

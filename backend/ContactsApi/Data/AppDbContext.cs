@@ -19,6 +19,7 @@ public class AppDbContext : DbContext
 
         modelBuilder.Entity<Contact>().HasIndex(c => c.Email).IsUnique();
 
+        // Seed the category/subcategory dictionary (kept in the DB, not hardcoded in app logic).
         modelBuilder
             .Entity<Category>()
             .HasData(
@@ -49,6 +50,7 @@ public class AppDbContext : DbContext
                     Name = "współpracownik",
                 }
             );
+        // Restrict: a category still referenced by contacts cannot be deleted.
         modelBuilder
             .Entity<Contact>()
             .HasOne(c => c.Category)

@@ -6,6 +6,8 @@ export const dictionaryKeys = {
   subcategories: ["subcategories"] as const,
 };
 
+// Combines both dictionary queries for the contact form.
+// staleTime: Infinity — the dictionary is effectively static, so never refetch it.
 export function useDictionary() {
   const categories = useQuery({
     queryKey: dictionaryKeys.categories,

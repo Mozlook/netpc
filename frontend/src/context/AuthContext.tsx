@@ -25,11 +25,15 @@ interface AuthContextValue {
 
 const AuthContext = createContext<AuthContextValue | undefined>(undefined);
 
+// Auth state for the UI only — the JWT lives in an HttpOnly cookie (invisible to JS).
+// The backend re-verifies every request; this never gates real authorization.
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<AuthResponse | null>(null);
   const [status, setStatus] = useState<AuthStatus>("loading");
 
+  // Restore the session on mount: the cookie survives a page refresh, the JS state does not.
   useEffect(() => {
+    // Guard against setState after unmount (incl. StrictMode's double-invoked effect).
     let active = true;
 
     getMe()
@@ -40,6 +44,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       })
       .catch((err) => {
         if (!active) return;
+        // 401 simply means "not logged in"; surface anything else.
         if (!(err instanceof ApiError && err.status === 401)) {
           console.error("Nie udało się odtworzyć sesji:", err);
         }
@@ -59,6 +64,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }
 
   async function register(body: RegisterRequest) {
+    // Registration does not log the user in (backend sets no cookie), so no state change.
     await registerApi(body);
   }
 

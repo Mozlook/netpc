@@ -20,6 +20,8 @@ async function request<T>(
 
   const response = await fetch(`${API_BASE_URL}${path}`, {
     method,
+    // Send/receive the auth cookie cross-origin. No Accept header on purpose:
+    // the API returns error messages as text/plain, which we read below.
     credentials: "include",
     headers: hasBody ? { "Content-Type": "application/json" } : undefined,
     body: hasBody ? JSON.stringify(body) : undefined,
@@ -30,6 +32,7 @@ async function request<T>(
     throw new ApiError(response.status, message || response.statusText);
   }
 
+  // Tolerate empty bodies (e.g. 204 No Content) so JSON.parse doesn't throw.
   const text = await response.text();
   return (text ? JSON.parse(text) : undefined) as T;
 }

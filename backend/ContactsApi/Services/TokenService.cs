@@ -17,6 +17,7 @@ public class TokenService : ITokenService
 
     public string GenerateToken(User user)
     {
+        // "sub" carries the user id — read server-side for auth and ownership (IDOR) checks.
         var claims = new List<Claim>
         {
             new Claim(JwtRegisteredClaimNames.Sub, user.Id.ToString()),

@@ -4,6 +4,8 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { ApiError } from "../api/client";
 
+// Passed via router state: `from` = where to return after login (set by ProtectedRoute),
+// `justRegistered` = show the "account created" note (set by RegisterPage).
 type LoginLocationState = {
   justRegistered?: boolean;
   from?: string;

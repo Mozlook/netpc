@@ -13,7 +13,7 @@ import { PASSWORD_HINT, PASSWORD_REGEX } from "../lib/password";
 import type { CategoryResponse, SubcategoryResponse } from "../types/category";
 import type { ContactDetailsResponse } from "../types/contact";
 
-// Wartości pól formularza (wszystko jako string — tak trzymają je <input>/<select>).
+// Form values kept as strings — that's what <input>/<select> hold.
 interface ContactFormValues {
   firstName: string;
   lastName: string;
@@ -38,6 +38,7 @@ const EMPTY_VALUES: ContactFormValues = {
   customSubcategory: "",
 };
 
+// Details expose category/subcategory as names, but the form needs ids — resolve via the dictionary.
 function toFormValues(
   contact: ContactDetailsResponse,
   categories: CategoryResponse[],
@@ -86,6 +87,7 @@ function ContactForm() {
     return <p className="text-red-600">Nie udało się pobrać kontaktu.</p>;
   }
 
+  // Owner-only edit: send a non-owner to the (public) details page instead of the form.
   if (isEdit && contactQuery.data && contactQuery.data.ownerId !== user?.id) {
     return <Navigate to={`/contacts/${id}`} replace />;
   }
@@ -96,6 +98,7 @@ function ContactForm() {
       : EMPTY_VALUES;
 
   return (
+    // key forces fresh form state when switching between contacts.
     <ContactFormFields
       key={id ?? "new"}
       mode={isEdit ? "edit" : "create"}
@@ -115,6 +118,7 @@ interface ContactFormFieldsProps {
   subcategories: SubcategoryResponse[];
 }
 
+// Mounted only once data is ready, so useState can seed from initialValues (no effect sync needed).
 function ContactFormFields({
   mode,
   contactId,
@@ -139,6 +143,7 @@ function ContactFormFields({
     (s) => String(s.categoryId) === values.categoryId,
   );
   const showSubcategorySelect = subcategoriesForCategory.length > 0;
+  // "inny" is matched by name — it has no dictionary subcategories to identify it otherwise.
   const showCustomSubcategory = selectedCategory?.name.toLowerCase() === "inny";
 
   function setField(field: keyof ContactFormValues, value: string) {
@@ -218,6 +223,7 @@ function ContactFormFields({
             firstName: values.firstName,
             lastName: values.lastName,
             email: values.email,
+            // Empty password -> null -> backend keeps the current one.
             password: values.password ? values.password : null,
             phone: values.phone,
             dateOfBirth: values.dateOfBirth,

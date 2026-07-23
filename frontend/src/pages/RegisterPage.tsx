@@ -26,6 +26,7 @@ function RegisterPage() {
     setPending(true);
     try {
       await register({ email, password });
+      // Registration doesn't log in, so redirect to login and flag the success note.
       navigate("/login", { state: { justRegistered: true } });
     } catch (err) {
       setError(

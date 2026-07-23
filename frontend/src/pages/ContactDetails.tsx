@@ -54,6 +54,7 @@ function ContactDetails() {
     return null;
   }
 
+  // Show owner actions (edit/delete) only to the owner — UI hint; backend still enforces it.
   const isOwner = user?.id === contact.ownerId;
 
   return (
