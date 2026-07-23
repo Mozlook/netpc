@@ -151,4 +151,29 @@ public class ContactController : ControllerBase
 
         return Ok(response);
     }
+
+    [HttpDelete("{id}")]
+    [Authorize]
+    public async Task<ActionResult> Delete(int id)
+    {
+        var contact = await _context.Contacts.FirstOrDefaultAsync(c => c.Id == id);
+
+        if (contact is null)
+        {
+            return NotFound();
+        }
+
+        var userId = int.Parse(User.FindFirstValue(JwtRegisteredClaimNames.Sub)!);
+
+        if (contact.OwnerId != userId)
+        {
+            return Forbid();
+        }
+
+        _context.Contacts.Remove(contact);
+
+        await _context.SaveChangesAsync();
+
+        return NoContent();
+    }
 }
