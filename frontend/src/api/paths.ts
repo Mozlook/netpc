@@ -9,4 +9,8 @@ export const API_PATHS = {
     base: "/api/contact",
     byId: (id: string | number) => `/api/contact/${id}`,
   },
+  dictionary: {
+    categories: "/api/category",
+    subcategories: "/api/subcategory",
+  },
 } as const;
