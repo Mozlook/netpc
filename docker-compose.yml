@@ -1,0 +1,26 @@
+# One command to run the whole app:  docker compose up --build
+# Then open http://localhost:8080
+services:
+  backend:
+    build: ./backend/ContactsApi
+    environment:
+      - ASPNETCORE_URLS=http://+:8080
+      - ASPNETCORE_ENVIRONMENT=Production
+      # SQLite file lives on a named volume so data survives container restarts.
+      - ConnectionStrings__DefaultConnection=Data Source=/app/data/contacts.db
+      # Secrets via env (no user-secrets in a container). Override JWT_KEY in real deployments.
+      - Jwt__Key=${JWT_KEY:-fCQTS5LclYbtkFrMJ4qoho36lYfG984/loOkE+ue/Pw=}
+      - Jwt__Issuer=ContactsApi
+      - Jwt__Audience=ContactsApi
+    volumes:
+      - contacts-data:/app/data
+
+  frontend:
+    build: ./frontend
+    ports:
+      - "8080:8080"
+    depends_on:
+      - backend
+
+volumes:
+  contacts-data:
