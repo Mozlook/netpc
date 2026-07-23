@@ -1,5 +1,6 @@
-import { Link, useParams } from "react-router-dom";
-import { useContact } from "../hooks/useContacts";
+import { useState } from "react";
+import { Link, useNavigate, useParams } from "react-router-dom";
+import { useContact, useDeleteContact } from "../hooks/useContacts";
 import { useAuth } from "../context/AuthContext";
 import { ApiError } from "../api/client";
 
@@ -10,7 +11,26 @@ function formatDate(iso: string): string {
 function ContactDetails() {
   const { id } = useParams();
   const { user } = useAuth();
+  const navigate = useNavigate();
+  const deleteContact = useDeleteContact();
+  const [deleteError, setDeleteError] = useState<string | null>(null);
   const { data: contact, isLoading, isError, error } = useContact(id);
+
+  function handleDelete() {
+    if (id === undefined) return;
+    if (!window.confirm("Na pewno usunąć ten kontakt?")) return;
+
+    setDeleteError(null);
+    deleteContact.mutate(id, {
+      onSuccess: () => navigate("/"),
+      onError: (err) =>
+        setDeleteError(
+          err instanceof ApiError
+            ? err.message
+            : "Nie udało się usunąć kontaktu.",
+        ),
+    });
+  }
 
   if (isLoading) {
     return <p className="text-gray-500">Ładowanie kontaktu...</p>;
@@ -47,14 +67,28 @@ function ContactDetails() {
           {contact.firstName} {contact.lastName}
         </h2>
         {isOwner && (
-          <Link
-            to={`/contacts/${contact.id}/edit`}
-            className="rounded border border-gray-300 px-3 py-1 text-sm hover:bg-gray-50"
-          >
-            Edytuj
-          </Link>
+          <div className="flex items-center gap-2">
+            <Link
+              to={`/contacts/${contact.id}/edit`}
+              className="rounded border border-gray-300 px-3 py-1 text-sm hover:bg-gray-50"
+            >
+              Edytuj
+            </Link>
+            <button
+              type="button"
+              onClick={handleDelete}
+              disabled={deleteContact.isPending}
+              className="rounded border border-red-300 px-3 py-1 text-sm text-red-700 hover:bg-red-50 disabled:opacity-50"
+            >
+              {deleteContact.isPending ? "Usuwanie..." : "Usuń"}
+            </button>
+          </div>
         )}
       </div>
+
+      {deleteError && (
+        <p className="mb-4 text-sm text-red-600">{deleteError}</p>
+      )}
 
       <dl className="grid grid-cols-[max-content_1fr] gap-x-6 gap-y-2 text-sm">
         <dt className="text-gray-500">Email</dt>

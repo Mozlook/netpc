@@ -32,3 +32,7 @@ export function updateContact(
     body,
   );
 }
+
+export function deleteContact(id: string | number): Promise<void> {
+  return apiClient.delete<void>(API_PATHS.contacts.byId(id));
+}
