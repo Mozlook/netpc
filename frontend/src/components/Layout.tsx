@@ -1,4 +1,5 @@
-import { NavLink, Outlet } from "react-router-dom";
+import { NavLink, Outlet, useNavigate } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
 
 function navLinkClass({ isActive }: { isActive: boolean }) {
   return isActive
@@ -7,6 +8,14 @@ function navLinkClass({ isActive }: { isActive: boolean }) {
 }
 
 function Layout() {
+  const { status, user, logout } = useAuth();
+  const navigate = useNavigate();
+
+  async function handleLogout() {
+    await logout();
+    navigate("/");
+  }
+
   return (
     <div className="min-h-screen">
       <header className="border-b border-gray-200">
@@ -14,17 +23,35 @@ function Layout() {
           <NavLink to="/" end className={navLinkClass}>
             Kontakty
           </NavLink>
-          <NavLink to="/contacts/new" className={navLinkClass}>
-            Dodaj kontakt
-          </NavLink>
+          {status === "authenticated" && (
+            <NavLink to="/contacts/new" className={navLinkClass}>
+              Dodaj kontakt
+            </NavLink>
+          )}
 
           <div className="ml-auto flex items-center gap-4">
-            <NavLink to="/login" className={navLinkClass}>
-              Zaloguj
-            </NavLink>
-            <NavLink to="/register" className={navLinkClass}>
-              Rejestracja
-            </NavLink>
+            {status === "authenticated" && (
+              <>
+                <span className="text-gray-500">{user?.email}</span>
+                <button
+                  type="button"
+                  onClick={handleLogout}
+                  className="text-gray-700 hover:text-blue-600"
+                >
+                  Wyloguj
+                </button>
+              </>
+            )}
+            {status === "anonymous" && (
+              <>
+                <NavLink to="/login" className={navLinkClass}>
+                  Zaloguj
+                </NavLink>
+                <NavLink to="/register" className={navLinkClass}>
+                  Rejestracja
+                </NavLink>
+              </>
+            )}
           </div>
         </nav>
       </header>
