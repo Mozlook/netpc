@@ -13,8 +13,6 @@ export function useContacts() {
   });
 }
 
-// Hook pobierający szczegóły jednego kontaktu.
-// id bywa undefined (parametr trasy) — wtedy zapytanie jest wstrzymane (enabled: false).
 export function useContact(id: string | undefined) {
   return useQuery({
     queryKey: contactKeys.detail(id ?? ""),

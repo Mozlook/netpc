@@ -2,12 +2,10 @@ import { Link, useParams } from "react-router-dom";
 import { useContact } from "../hooks/useContacts";
 import { ApiError } from "../api/client";
 
-// Formatuje datę ISO z backendu (np. "1990-05-20T00:00:00") na czytelną datę PL.
 function formatDate(iso: string): string {
   return new Date(iso).toLocaleDateString("pl-PL");
 }
 
-// Strona: publiczne szczegóły pojedynczego kontaktu (trasa "/contacts/:id").
 function ContactDetails() {
   const { id } = useParams();
   const { data: contact, isLoading, isError, error } = useContact(id);
@@ -17,7 +15,6 @@ function ContactDetails() {
   }
 
   if (isError) {
-    // 404 pokazujemy jako przyjazny komunikat; inne błędy z treścią z backendu.
     const notFound = error instanceof ApiError && error.status === 404;
     return (
       <div>
@@ -45,8 +42,6 @@ function ContactDetails() {
         {contact.firstName} {contact.lastName}
       </h2>
 
-      {/* Prosta lista opisowa (etykieta -> wartość). Podkategoria zależy od kategorii:
-          "służbowy" -> subcategory (ze słownika), "inny" -> customSubcategory. */}
       <dl className="grid grid-cols-[max-content_1fr] gap-x-6 gap-y-2 text-sm">
         <dt className="text-gray-500">Email</dt>
         <dd>{contact.email}</dd>
