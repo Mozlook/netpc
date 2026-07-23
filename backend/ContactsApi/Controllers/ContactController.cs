@@ -176,4 +176,110 @@ public class ContactController : ControllerBase
 
         return NoContent();
     }
+
+    [HttpPut("{id}")]
+    [Authorize]
+    public async Task<ActionResult<ContactDetailsResponse>> Update(
+        int id,
+        ContactUpdateRequest request
+    )
+    {
+        var contact = await _context.Contacts.FirstOrDefaultAsync(c => c.Id == id);
+
+        if (contact is null)
+        {
+            return NotFound();
+        }
+
+        var userId = int.Parse(User.FindFirstValue(JwtRegisteredClaimNames.Sub)!);
+
+        if (contact.OwnerId != userId)
+        {
+            return Forbid();
+        }
+
+        var category = await _context.Categories.FirstOrDefaultAsync(c =>
+            c.Id == request.CategoryId
+        );
+
+        if (category is null)
+        {
+            return BadRequest();
+        }
+
+        Subcategory? subcategory = null;
+        if (request.SubcategoryId is not null)
+        {
+            subcategory = await _context.Subcategories.FirstOrDefaultAsync(s =>
+                s.Id == request.SubcategoryId
+            );
+            if (subcategory is null)
+            {
+                return BadRequest();
+            }
+        }
+
+        if (category.Id == 1)
+        {
+            if (request.SubcategoryId is null || request.CustomSubcategory is not null)
+            {
+                return BadRequest("Kategoria 'służbowy' wymaga podania podkategorii ze słownika.");
+            }
+        }
+        else if (category.Id == 3)
+        {
+            if (request.CustomSubcategory is null || request.SubcategoryId is not null)
+            {
+                return BadRequest("Kategoria 'inny' wymaga podania własnej podkategorii.");
+            }
+        }
+        else
+        {
+            if (request.SubcategoryId is not null || request.CustomSubcategory is not null)
+            {
+                return BadRequest("Kategoria 'prywatny' nie powinna mieć podkategorii.");
+            }
+        }
+
+        var emailConflict = await _context.Contacts.FirstOrDefaultAsync(c =>
+            c.Email == request.Email && c.Id != id
+        );
+
+        if (emailConflict is not null)
+        {
+            return Conflict();
+        }
+
+        contact.FirstName = request.FirstName;
+        contact.LastName = request.LastName;
+        contact.Email = request.Email;
+        contact.Phone = request.Phone;
+        contact.DateOfBirth = request.DateOfBirth;
+        contact.CategoryId = request.CategoryId;
+        contact.SubcategoryId = request.SubcategoryId;
+        contact.CustomSubcategory = request.CustomSubcategory;
+
+        if (request.Password is not null)
+        {
+            var passwordHash = BCrypt.Net.BCrypt.HashPassword(request.Password);
+            contact.PasswordHash = passwordHash;
+        }
+
+        await _context.SaveChangesAsync();
+
+        var response = new ContactDetailsResponse(
+            contact.Id,
+            contact.FirstName,
+            contact.LastName,
+            contact.Email,
+            category.Name,
+            subcategory?.Name,
+            contact.CustomSubcategory,
+            contact.Phone,
+            contact.DateOfBirth,
+            contact.OwnerId
+        );
+
+        return Ok(response);
+    }
 }
