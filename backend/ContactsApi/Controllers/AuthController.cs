@@ -4,6 +4,7 @@ using ContactsApi.Data;
 using ContactsApi.DTOs;
 using ContactsApi.Models;
 using ContactsApi.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -70,5 +71,19 @@ public class AuthController : ControllerBase
 
         Response.Cookies.Append(CookieNames.AccessToken, token, cookieOptions);
         return Ok(new AuthResponse(existingUser.Id, existingUser.Email));
+    }
+
+    [HttpPost("logout")]
+    [Authorize]
+    public ActionResult Logout()
+    {
+        var cookieOptions = new CookieOptions
+        {
+            HttpOnly = true,
+            Secure = true,
+            SameSite = SameSiteMode.Lax,
+        };
+        Response.Cookies.Delete(CookieNames.AccessToken, cookieOptions);
+        return NoContent();
     }
 }
