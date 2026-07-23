@@ -3,6 +3,7 @@ namespace ContactsApi.Controllers;
 using ContactsApi.Data;
 using ContactsApi.DTOs;
 using ContactsApi.Models;
+using ContactsApi.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -11,10 +12,12 @@ using Microsoft.EntityFrameworkCore;
 public class AuthController : ControllerBase
 {
     private readonly AppDbContext _context;
+    private readonly ITokenService _tokenService;
 
-    public AuthController(AppDbContext context)
+    public AuthController(AppDbContext context, ITokenService tokenService)
     {
         _context = context;
+        _tokenService = tokenService;
     }
 
     [HttpPost("register")]
@@ -38,5 +41,34 @@ public class AuthController : ControllerBase
         var response = new AuthResponse(newUser.Id, newUser.Email);
 
         return CreatedAtAction(nameof(Register), response);
+    }
+
+    [HttpPost("login")]
+    public async Task<ActionResult<AuthResponse>> Login(LoginRequest request)
+    {
+        var existingUser = await _context.Users.FirstOrDefaultAsync(u => u.Email == request.Email);
+
+        if (existingUser is null)
+        {
+            return Unauthorized("Nieprawidłowy email lub hasło.");
+        }
+
+        if (!BCrypt.Net.BCrypt.Verify(request.Password, existingUser.PasswordHash))
+        {
+            return Unauthorized("Nieprawidłowy email lub hasło.");
+        }
+
+        var token = _tokenService.GenerateToken(existingUser);
+
+        var cookieOptions = new CookieOptions
+        {
+            HttpOnly = true,
+            Secure = true,
+            SameSite = SameSiteMode.Lax,
+            Expires = DateTime.UtcNow.AddHours(1),
+        };
+
+        Response.Cookies.Append(CookieNames.AccessToken, token, cookieOptions);
+        return Ok(new AuthResponse(existingUser.Id, existingUser.Email));
     }
 }

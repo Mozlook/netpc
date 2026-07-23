@@ -1,5 +1,6 @@
 using System.Text;
 using ContactsApi.Data;
+using ContactsApi.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
@@ -16,6 +17,8 @@ builder.Services.AddSwaggerGen();
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection"))
 );
+
+builder.Services.AddScoped<ITokenService, TokenService>();
 
 builder
     .Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
@@ -38,7 +41,7 @@ builder
         {
             OnMessageReceived = context =>
             {
-                context.Token = context.Request.Cookies["access_token"];
+                context.Token = context.Request.Cookies[CookieNames.AccessToken];
                 return Task.CompletedTask;
             },
         };
