@@ -1,5 +1,7 @@
 namespace ContactsApi.Controllers;
 
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
 using ContactsApi.Data;
 using ContactsApi.DTOs;
 using ContactsApi.Models;
@@ -85,5 +87,20 @@ public class AuthController : ControllerBase
         };
         Response.Cookies.Delete(CookieNames.AccessToken, cookieOptions);
         return NoContent();
+    }
+
+    [HttpGet("me")]
+    [Authorize]
+    public async Task<ActionResult<AuthResponse>> Me()
+    {
+        var userId = int.Parse(User.FindFirstValue(JwtRegisteredClaimNames.Sub)!);
+        var user = await _context.Users.FindAsync(userId);
+
+        if (user is null)
+        {
+            return NotFound();
+        }
+
+        return Ok(new AuthResponse(user.Id, user.Email));
     }
 }
